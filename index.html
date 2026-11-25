@@ -206,6 +206,7 @@ function drawSide(J,p,bad){
   s+=G.ci(J.head,11,col("head","body"))+G.ci(J.face,2.2,"stage2");
   s+=G.ln(J.hip,J.knee,col("leg","body"),11)+G.ln(J.knee,J.ank,col("leg","body"),10)+G.ln(J.ank,J.toe,col("foot","body"),6);
   s+=G.ln(J.sho,J.elb,col("arm","body"),9)+G.ln(J.elb,J.wri,col("arm","body"),8);
+  if(J.elb[1]<J.sho[1]-6)s+=G.ci(J.head,12.5,"stage2")+G.ci(J.head,11,col("head","body"))+G.ci(J.face,2.2,"stage2");
   return s;
 }
 function drawFront(J,p,bad,cfg={}){
@@ -439,7 +440,7 @@ const cl=x=>Math.max(0,Math.min(1,x));
 
 /* ---------- Lat pulldown: per the manual, sit FACING the backrest with thighs under the rollers ---------- */
 (function(){
-  const t={t:186,th:88,sh:2,w1:[133,40],q:0,bn:0},b=m(t,{t:192,w1:[136,112],q:1});
+  const t={t:186,th:88,sh:2,w1:[141,42],q:0,bn:0},b=m(t,{t:192,w1:[136,112],q:1});
   const frontV=(P,bad)=>{const q=P.q||0,bn=P.bn||0;
     const pose={wR:[196,15+55*q],eR:1,ebR:[0.5,1]};
     return altFront(pose,{pin:[150,214]},bad,J=>{const bar=G.ln(add(J.wriL,[-10,0]),add(J.wriR,[10,0]),"machine",5);return G.floor()+G.re(110,150,80,12,"machine",.6)+G.ln([150,4],[150,J.wriR[1]],"dim",1.2)+(bn>.5?bar:"")},
