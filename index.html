@@ -104,6 +104,7 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline
       <div class="ctl"><button id="play">Pause</button><input id="scrub" type="range" min="0" max="1000" value="0" aria-label="Scrub through the rep"><button id="spd">1×</button></div>
     </div>
     <div class="notes" id="notes"></div>
+    <div class="lift" id="lift"></div>
     <div class="pn"><button id="prev">← Previous</button><span class="rx" id="count"></span><button id="next">Next →</button></div>
   </article>
 
@@ -1069,6 +1070,50 @@ header{position:relative}
   $("wimpb").onclick=()=>{$("wio").hidden=!$("wio").hidden;$("wimp").value="";};
   $("wimpgo").onclick=()=>{const d=load();let n=0;$("wimp").value.split(/\n+/).forEach(l=>{const m=l.trim().match(/^(\d{4}-\d{2}-\d{2})[,;\s]+([\d.,]+)/);if(m){const kg=parseFloat(m[2].replace(",","."));if(kg>=20&&kg<=250){d[m[1]]=Math.round(kg*10)/10;n++}}});if(!n){msg("No lines matched. Use: 2026-11-06,57.2");return}const ok=save(d);draw();if(ok){$("wio").hidden=true;msg(`Imported ${n} entries.`)}else msg("Couldn't import: this browser is blocking storage.")};
   document.addEventListener("keydown",e=>{if(e.key==="Escape")$("wsheet").hidden=true});
+})();
+</script>
+<style>
+.lift{display:grid;gap:8px;border-top:1px solid var(--line);padding-top:12px}
+.lift h3{margin:0}.lift .last{font-size:.85rem;color:var(--muted)}.lift .last b{color:var(--ink);font-weight:600}
+.lform{display:grid;grid-template-columns:1fr 1fr auto;gap:8px;align-items:end}
+.lform label{display:grid;gap:4px;font:600 .68rem var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted);min-width:0}
+.lform input{font:500 1.05rem var(--text);padding:9px 10px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink);width:100%;box-sizing:border-box;min-width:0}
+.ladd{font:600 .95rem var(--text);padding:10px 16px;border-radius:8px;border:0;background:var(--accent);color:#1b1206;cursor:pointer}
+.lsets{display:flex;flex-wrap:wrap;gap:6px}.lsets button{font:500 .85rem var(--mono);border:1px solid var(--line);background:var(--soft);color:var(--ink);border-radius:8px;padding:6px 10px;cursor:pointer}
+.lbk{display:flex;gap:8px;flex-wrap:wrap}.lbk button{font:500 .8rem var(--text);border:1px solid var(--line);background:transparent;color:var(--muted);border-radius:8px;padding:5px 10px;cursor:pointer}
+.lift textarea{width:100%;box-sizing:border-box;min-height:70px;background:var(--bg);color:var(--ink);border:1px solid var(--line);border-radius:8px;font:.8rem var(--mono)}
+</style>
+<script>
+(function(){
+const K="gymLiftLog",$=id=>document.getElementById(id);
+const today=()=>{const t=new Date();t.setMinutes(t.getMinutes()-t.getTimezoneOffset());return t.toISOString().slice(0,10)};
+const load=()=>{try{return JSON.parse(localStorage.getItem(K)||"{}")||{}}catch(e){return {}}};
+const save=d=>{try{localStorage.setItem(K,JSON.stringify(d));return true}catch(e){return false}};
+const esc=x=>String(x).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const fmt=w=>/^[\d.,]+$/.test(w)?w+" kg":w;
+window.renderLift=function(id,msg){
+  const box=$("lift");if(!box)return;const d=load(),L=d[id]||[],t=today();
+  const now=L.filter(x=>x.d===t),past=L.filter(x=>x.d<t),pd=past.length?past[past.length-1].d:null,prev=pd?past.filter(x=>x.d===pd):[];
+  const sum=a=>a.map(x=>`${esc(fmt(x.w))} × ${x.r}`).join(" · ");
+  const best=L.reduce((b,x)=>{const n=parseFloat(String(x.w).replace(",","."));return isNaN(n)?b:(!b||n>b.n||(n===b.n&&x.r>b.r)?{n,r:x.r,w:x.w}:b)},null);
+  const def=(now[now.length-1]||prev[prev.length-1]||{}).w||"";
+  box.innerHTML=`<h3>Your sets</h3>
+  <div class="last">${pd?`Last time (${pd}): <b>${sum(prev)}</b>`:(now.length?"First session logged for this one.":"No sets logged yet for this exercise.")}${best?`<br>Best: <b>${esc(fmt(best.w))} × ${best.r}</b>`:""}</div>
+  <form class="lform" id="lf"><label>Weight / band<input id="lw" value="${esc(def)}" placeholder="20 or red band" autocomplete="off"></label><label>Reps<input id="lr" type="number" inputmode="numeric" min="1" max="200"></label><button class="ladd">Add set</button></form>
+  ${now.length?`<div class="lsets">${now.map((x,i)=>`<button data-i="${i}" aria-label="Delete set ${i+1}">${i+1}: ${esc(fmt(x.w))} × ${x.r} ✕</button>`).join("")}</div>`:""}
+  ${msg?`<div class="last">${msg}</div>`:""}
+  <div class="lbk"><button id="lcp" type="button">Copy backup</button><button id="lim" type="button">Restore backup</button></div>
+  <div id="lio" hidden><textarea id="ltx" placeholder="Paste a backup here"></textarea><div class="lbk" style="margin-top:6px"><button id="lgo" type="button">Restore</button></div></div>`;
+  $("lf").onsubmit=e=>{e.preventDefault();const w=$("lw").value.trim(),r=parseInt($("lr").value,10);
+    if(!w||!(r>0))return renderLift(id,"Enter a weight and the reps.");
+    const D=load();(D[id]=D[id]||[]).push({d:today(),w,r});renderLift(id,save(D)?"":"Couldn't save: this browser is blocking storage.");setTimeout(()=>{const e=$("lr");if(e)e.focus()},0)};
+  box.querySelectorAll(".lsets button").forEach(b=>b.onclick=()=>{const D=load(),A=D[id]||[],t=today(),ix=A.map((x,j)=>x.d===t?j:-1).filter(j=>j>=0)[+b.dataset.i];A.splice(ix,1);D[id]=A;renderLift(id,save(D)?"Set deleted.":"Couldn't delete: storage is blocked.")});
+  $("lcp").onclick=()=>{const txt=JSON.stringify(load());navigator.clipboard&&navigator.clipboard.writeText(txt).then(()=>renderLift(id,"Backup copied. Paste it into Notes to keep it."),()=>{$("lio").hidden=false;$("ltx").value=txt;$("ltx").select()})||($("lio").hidden=false,$("ltx").value=txt)};
+  $("lim").onclick=()=>{$("lio").hidden=!$("lio").hidden};
+  $("lgo").onclick=()=>{try{const inc=JSON.parse($("ltx").value),D=load();let n=0;for(const k in inc){if(!Array.isArray(inc[k]))continue;D[k]=D[k]||[];inc[k].forEach(x=>{if(x&&x.d&&x.w&&x.r&&!D[k].some(y=>y.d===x.d&&y.w===x.w&&y.r===x.r)){D[k].push(x);n++}});D[k].sort((a,b)=>a.d<b.d?-1:a.d>b.d?1:0)}renderLift(id,save(D)?`Restored ${n} sets.`:"Couldn't save: storage is blocked.")}catch(e){renderLift(id,"That doesn't look like a backup.")}};
+};
+const o=window.selectEx;if(o){window.selectEx=function(id,rx,bl){o(id,rx,bl);renderLift(id)};try{selectEx=window.selectEx}catch(e){}}
+try{if(cur&&cur.ex)renderLift(cur.ex)}catch(e){}
 })();
 </script>
 <script>if("serviceWorker" in navigator)navigator.serviceWorker.register("sw.js").catch(()=>{});</script>
