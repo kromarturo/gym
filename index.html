@@ -1103,6 +1103,7 @@ window.renderLift=function(id,msg){
   <form class="lform" id="lf"><label>Weight / band<input id="lw" value="${esc(def)}" placeholder="20 or red band" autocomplete="off"></label><label>Reps<input id="lr" type="number" inputmode="numeric" min="1" max="200"></label><button class="ladd">Add set</button></form>
   ${now.length?`<div class="lsets">${now.map((x,i)=>`<button data-i="${i}" aria-label="Delete set ${i+1}">${i+1}: ${esc(fmt(x.w))} × ${x.r} ✕</button>`).join("")}</div>`:""}
   ${msg?`<div class="last">${msg}</div>`:""}
+  ${(()=>{const m=String(cur&&cur.rx||"").match(/(\d+)\s*s\s*rest/i);const secs=m?[+m[1]]:[60,90];return `<div class="lbk">${secs.map(x=>`<a class="ladd" style="text-decoration:none;display:inline-block" href="shortcuts://run-shortcut?name=Gym%20Rest&input=text&text=${x}">Rest ${x} s ⏱</a>`).join("")}</div>`})()}
   <div class="lbk"><button id="lcp" type="button">Copy backup</button><button id="lim" type="button">Restore backup</button></div>
   <div id="lio" hidden><textarea id="ltx" placeholder="Paste a backup here"></textarea><div class="lbk" style="margin-top:6px"><button id="lgo" type="button">Restore</button></div></div>`;
   $("lf").onsubmit=e=>{e.preventDefault();const w=$("lw").value.trim(),r=parseInt($("lr").value,10);
