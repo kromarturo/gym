@@ -1103,7 +1103,11 @@ window.renderLift=function(id,msg){
   <form class="lform" id="lf"><label>Weight / band<input id="lw" value="${esc(def)}" placeholder="20 or red band" autocomplete="off"></label><label>Reps<input id="lr" type="number" inputmode="numeric" min="1" max="200"></label><button class="ladd">Add set</button></form>
   ${now.length?`<div class="lsets">${now.map((x,i)=>`<button data-i="${i}" aria-label="Delete set ${i+1}">${i+1}: ${esc(fmt(x.w))} × ${x.r} ✕</button>`).join("")}</div>`:""}
   ${msg?`<div class="last">${msg}</div>`:""}
-  ${(()=>{const m=String(cur&&cur.rx||"").match(/(\d+)\s*s\s*rest/i);const secs=m?[+m[1]]:[60,90];return `<div class="lbk">${secs.map(x=>`<a class="ladd" style="text-decoration:none;display:inline-block" href="shortcuts://run-shortcut?name=Gym%20Rest&input=text&text=${x}">Rest ${x} s ⏱</a>`).join("")}</div>`})()}
+  ${(()=>{const rx=String(cur&&cur.rx||"");const rest=[],work=[];
+    rx.replace(/(\d+)\s*s\s*(rest|after)/gi,(_,x)=>{rest.push(+x);return""}).replace(/(\d+)(?:\s*[–-]\s*(\d+))?\s*(s|sec|min|minutes?)\b/gi,(_,x,y,u)=>{const k=/^m/i.test(u)?60:1;[x,y].forEach(v=>{if(v&&!work.includes(+v*k))work.push(+v*k)});return""});
+    if(!rest.length&&!work.length)rest.push(60,90);
+    const lab=x=>x>=60&&x%60===0?x/60+" min":x+" s",btn=(x,t,c)=>`<a class="ladd" style="text-decoration:none;display:inline-block;${c}" href="shortcuts://run-shortcut?name=Gym%20Rest&input=text&text=${x}">${t} ${lab(x)} ⏱</a>`;
+    return `<div class="lbk">${work.map(x=>btn(x,"Time","background:var(--good);color:#fff")).join("")}${rest.map(x=>btn(x,"Rest","")).join("")}</div>`})()}
   <div class="lbk"><button id="lcp" type="button">Copy backup</button><button id="lim" type="button">Restore backup</button></div>
   <div id="lio" hidden><textarea id="ltx" placeholder="Paste a backup here"></textarea><div class="lbk" style="margin-top:6px"><button id="lgo" type="button">Restore</button></div></div>`;
   $("lf").onsubmit=e=>{e.preventDefault();const w=$("lw").value.trim(),r=parseInt($("lr").value,10);
