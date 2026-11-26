@@ -1074,6 +1074,13 @@ header{position:relative}
 })();
 </script>
 <style>
+.tl{font:600 .68rem var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-top:4px}
+.tbar{display:flex;flex-wrap:wrap;gap:8px}
+.tbtn{display:inline-flex;align-items:center;gap:7px;padding:8px 12px;border:1px solid var(--line);border-radius:8px;background:var(--soft);color:var(--ink);text-decoration:none;font:500 .9rem var(--text)}
+.tbtn svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;color:var(--accent)}
+.tbtn span{font:600 .66rem var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.tbtn b{font-weight:600;font-variant-numeric:tabular-nums}
+.tbtn:active{background:var(--line)}
 .lift{display:grid;gap:8px;border-top:1px solid var(--line);padding-top:12px}
 .lift h3{margin:0}.lift .last{font-size:.85rem;color:var(--muted)}.lift .last b{color:var(--ink);font-weight:600}
 .lform{display:grid;grid-template-columns:1fr 1fr auto;gap:8px;align-items:end}
@@ -1108,8 +1115,8 @@ window.renderLift=function(id,msg){
     {const m=String(cur&&cur.block||"").match(/(\d+):(\d+)\s*[–-]\s*(\d+):(\d+)/);if(m){const d=((+m[3]*60+ +m[4])-(+m[1]*60+ +m[2]))*60;if(d>0&&!work.includes(d))work.unshift(d);}}
     {const X=(window.SUBX||{})[String(cur&&cur.block||"")];if(X&&work.length){const per=Math.max(15,Math.round(work[0]/X.n/15)*15);if(X.rest){if(!rest.includes(X.rest))rest.push(X.rest)}else if(!work.includes(per))work.splice(1,0,per);}}
     if(!rest.length&&!work.length)rest.push(60,90);
-    const lab=x=>x>=60&&x%60===0?x/60+" min":x+" s",btn=(x,t,c)=>`<a class="ladd" style="text-decoration:none;display:inline-block;${c}" href="shortcuts://run-shortcut?name=Gym%20Rest&input=text&text=${x}">${t} ${lab(x)} ⏱</a>`;
-    return `<div class="lbk">${work.map(x=>btn(x,"Time","background:var(--good);color:#fff")).join("")}${rest.map(x=>btn(x,"Rest","")).join("")}</div>`})()}
+    const lab=x=>x>=60&&x%60===0?x/60+" min":x+" s",btn=(x,t)=>`<a class="tbtn" href="shortcuts://run-shortcut?name=Gym%20Rest&input=text&text=${x}"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 2M9.5 2.5h5"/></svg><span>${t}</span><b>${lab(x)}</b></a>`;
+    return `<div class="tl">Timer</div><div class="tbar">${work.map(x=>btn(x,"Work")).join("")}${rest.map(x=>btn(x,"Rest")).join("")}</div>`})()}
   <div class="lbk"><button id="lcp" type="button">Copy backup</button><button id="lim" type="button">Restore backup</button></div>
   <div id="lio" hidden><textarea id="ltx" placeholder="Paste a backup here"></textarea><div class="lbk" style="margin-top:6px"><button id="lgo" type="button">Restore</button></div></div>`;
   $("lf").onsubmit=e=>{e.preventDefault();const w=$("lw").value.trim(),r=parseInt($("lr").value,10);
