@@ -961,7 +961,7 @@ function showDay(id){
     if(it.ex){const ex=EX[it.ex];seq.push({ex:it.ex,rx:it.rx,block:it.slot});
       const ck=clk(it.slot,id);seq[seq.length-1].block=ck?`${ck} · ${it.slot}`:it.slot;h+=`<button class="item" data-ex="${it.ex}" data-rx="${it.rx}" data-bl="${seq[seq.length-1].block}"><span class="slot">${ck?`<b style="color:var(--ink)">${ck}</b><br>`:""}${it.slot}</span><span><span class="nm">${ex.name}</span><br><span class="sub">${it.rx}</span></span></button>`;}
     else{const ck=clk(it.slot,id);h+=`<div class="item static"><span class="slot">${ck?`<b style="color:var(--ink)">${ck}</b><br>`:""}${it.slot}</span><span><span class="nm">${it.name}</span>${it.sub?`<br><span class="sub">${it.sub}</span>`:""}`;
-      if(it.subs){h+=`<div class="subs">`+it.subs.map(([n,e])=>{const bl=(ck?ck+" · ":"")+it.name;seq.push({ex:e,rx:n,block:bl});return `<button data-ex="${e}" data-rx="${n}" data-bl="${bl}">▶ ${n}</button>`}).join("")+`</div>`;}
+      if(it.subs){h+=`<div class="subs">`+it.subs.map(([n,e])=>{const bl=(ck?ck+" · ":"")+it.name;{const rm=(it.sub||"").match(/(\d+)\s*s\s*rest/i);(window.SUBX=window.SUBX||{})[bl]={n:it.subs.length,rest:rm?+rm[1]:0};}seq.push({ex:e,rx:n,block:bl});return `<button data-ex="${e}" data-rx="${n}" data-bl="${bl}">▶ ${n}</button>`}).join("")+`</div>`;}
       h+=`</span></div>`;}
   }
   $("session").innerHTML=h;
@@ -1106,6 +1106,7 @@ window.renderLift=function(id,msg){
   ${(()=>{const rx=String(cur&&cur.rx||"");const rest=[],work=[];
     rx.replace(/(\d+)\s*s\s*(rest|after)/gi,(_,x)=>{rest.push(+x);return""}).replace(/(\d+)(?:\s*[–-]\s*(\d+))?\s*(s|sec|min|minutes?)\b/gi,(_,x,y,u)=>{const k=/^m/i.test(u)?60:1;[x,y].forEach(v=>{if(v&&!work.includes(+v*k))work.push(+v*k)});return""});
     {const m=String(cur&&cur.block||"").match(/(\d+):(\d+)\s*[–-]\s*(\d+):(\d+)/);if(m){const d=((+m[3]*60+ +m[4])-(+m[1]*60+ +m[2]))*60;if(d>0&&!work.includes(d))work.unshift(d);}}
+    {const X=(window.SUBX||{})[String(cur&&cur.block||"")];if(X&&work.length){const per=Math.max(15,Math.round(work[0]/X.n/15)*15);if(X.rest){if(!rest.includes(X.rest))rest.push(X.rest)}else if(!work.includes(per))work.splice(1,0,per);}}
     if(!rest.length&&!work.length)rest.push(60,90);
     const lab=x=>x>=60&&x%60===0?x/60+" min":x+" s",btn=(x,t,c)=>`<a class="ladd" style="text-decoration:none;display:inline-block;${c}" href="shortcuts://run-shortcut?name=Gym%20Rest&input=text&text=${x}">${t} ${lab(x)} ⏱</a>`;
     return `<div class="lbk">${work.map(x=>btn(x,"Time","background:var(--good);color:#fff")).join("")}${rest.map(x=>btn(x,"Rest","")).join("")}</div>`})()}
